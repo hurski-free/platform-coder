@@ -17,9 +17,9 @@ export function rndInt(digits: number, excludeZero: boolean = false) {
  * Strict min + length <= max
  */
 export function createIntUniqueArray(length: number, min: number, max: number) {
-  let step = max - min / length;
+  let step = (max - min) / length;
   let a = min;
-
+  
   return Array.from({ length }, () => {
     const value = Math.floor(rng(a, Math.floor(a + step)));
     a += step;

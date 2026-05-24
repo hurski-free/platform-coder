@@ -24,14 +24,14 @@ function createSubtractionPlatform(digits: number): ILevelPlatform {
   };
 }
 
-function createMultiplicationPlatform(digits: number): ILevelPlatform {
-  const a = rndInt(digits);
-  const b = rndInt(digits);
+function createMultiplicationPlatform(mul1Digits: number, mul2Digits: number): ILevelPlatform {
+  const mul1 = rndInt(mul1Digits);
+  const mul2 = rndInt(mul2Digits);
 
   return {
     kind: 'text_match',
-    prompt: `${a} * ${b} = ?`,
-    expected: a * b,
+    prompt: `${mul1} * ${mul2} = ?`,
+    expected: mul1 * mul2,
   };
 }
 
@@ -57,10 +57,10 @@ function createDecreasingArray(length: number, min: number, max: number) {
 }
 
 function createMathLevel(): ILevel {
-  const incrreasingArray = createIcreasingArray(5, 1, 10);
+  const incrreasingArray = createIcreasingArray(5, -30, 30);
   const incrreasingBlocks = incrreasingArray.map((value) => ({ id: value.toString(), text: value.toString() }));
 
-  const decreasingArray = createDecreasingArray(5, 1, 10);
+  const decreasingArray = createDecreasingArray(5, -30, 30);
   const decreasingBlocks = decreasingArray.map((value) => ({ id: value.toString(), text: value.toString() }));
 
   return {
@@ -70,8 +70,8 @@ function createMathLevel(): ILevel {
       ...Array.from({ length: 1 }).map(() => createSumPlatform(3)),
       ...Array.from({ length: 2 }).map(() => createSubtractionPlatform(1)),
       ...Array.from({ length: 2 }).map(() => createSubtractionPlatform(2)),
-      ...Array.from({ length: 3 }).map(() => createMultiplicationPlatform(1)),
-      ...Array.from({ length: 1 }).map(() => createMultiplicationPlatform(2)),
+      ...Array.from({ length: 3 }).map(() => createMultiplicationPlatform(2, 1)),
+      ...Array.from({ length: 1 }).map(() => createMultiplicationPlatform(2, 2)),
       ...Array.from({ length: 2 }).map(() => createDivisionPlatform(1, 1)),
       ...Array.from({ length: 2 }).map(() => createDivisionPlatform(2, 1)),
       {
