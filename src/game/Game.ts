@@ -3,6 +3,12 @@ import type { IFrameView } from './FrameView';
 import type { IGameSession, LevelOutcome } from './GameSession';
 import type { ILevel } from './level/ILevel';
 import type { IRender } from './render/IRender';
+import {
+  BlockSequenceTask,
+  isBlockSequenceTask,
+} from './tasks/BlockSequenceTask';
+import type { PlatformTaskKind } from './tasks/IPlatformTask';
+import type { TaskAnswer } from './tasks/IVerify';
 import { GameWorld } from './world/GameWorld';
 
 /**
@@ -54,6 +60,18 @@ export class Game {
 
   get taskPrompt(): string {
     return this.world.currentPlatform?.task.prompt ?? '';
+  }
+
+  get taskKind(): PlatformTaskKind {
+    return this.world.currentPlatform?.task.kind ?? 'text_match';
+  }
+
+  getBlockSequenceTask(): BlockSequenceTask | null {
+    const task = this.world.currentPlatform?.task;
+    if (!task || !isBlockSequenceTask(task)) {
+      return null;
+    }
+    return task;
   }
 
   get levelOutcome(): LevelOutcome {
@@ -150,7 +168,7 @@ export class Game {
   }
 
   /** Проверка ответа; при успехе — очки и прыжок; при ошибке — проигрыш */
-  submitAnswer(answer: string): boolean {
+  submitAnswer(answer: TaskAnswer): boolean {
     if (!this.canSubmitTask) {
       return false;
     }

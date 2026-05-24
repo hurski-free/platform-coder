@@ -27,6 +27,7 @@ export default {
     paused: 'Paused',
     taskTitle: 'Solve to jump up',
     answerPlaceholder: 'Your answer',
+    blockSequenceHint: 'Drag blocks into the correct order',
     submit: 'Submit',
     winTitle: 'Level complete!',
     loseTitle: 'Level failed',

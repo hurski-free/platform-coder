@@ -1,4 +1,5 @@
 import type { IPlatformTask } from './IPlatformTask';
+import type { TaskAnswer } from './IVerify';
 
 export type TextMatchExpected = string | number;
 
@@ -20,7 +21,11 @@ export class TextMatchTask implements IPlatformTask {
     this.caseSensitive = caseSensitive;
   }
 
-  verify(answer: string): boolean {
+  verify(answer: TaskAnswer): boolean {
+    if (typeof answer !== 'string') {
+      return false;
+    }
+
     const trimmed = answer.trim();
     if (trimmed.length === 0) {
       return false;

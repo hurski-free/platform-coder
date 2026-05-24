@@ -68,6 +68,29 @@ const solarSystemLevel: ILevel = {
       prompt: 'Планета с самой высокой температурой на поверхности?',
       expected: 'Венера',
     },
+    {
+      kind: 'block_sequence',
+      prompt: 'Расположите планеты от самых близких к самым удалённым от Солнца:',
+      blocks: [
+        { id: 'mercury', text: 'Меркурий' },
+        { id: 'earth', text: 'Земля' },
+        { id: 'mars', text: 'Марс' },
+        { id: 'uranus', text: 'Уран' },
+        { id: 'neptune', text: 'Нептун' },
+      ],
+      expected: ['mercury', 'earth', 'mars', 'uranus', 'neptune'],
+    },
+    {
+      kind: 'block_sequence',
+      prompt: 'Расположите планеты от самых дальних к самым близким к Солнцу:',
+      blocks: [
+        { id: 'saturn', text: 'Сатурн' },
+        { id: 'jupiter', text: 'Юпитер' },
+        { id: 'venus', text: 'Венера' },
+        { id: 'earth', text: 'Земля' },
+      ],
+      expected: ['saturn', 'jupiter', 'venus', 'earth'],
+    },
   ],
 };
 

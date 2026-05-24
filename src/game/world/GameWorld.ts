@@ -6,6 +6,7 @@ import {
 } from '../constants';
 import type { ILevel } from '../level/ILevel';
 import { createTask } from '../tasks/task-fabric';
+import type { TaskAnswer } from '../tasks/IVerify';
 import type { IWorld } from './IWorld';
 import { Platform } from './Platform';
 import { Player } from './Player';
@@ -59,7 +60,7 @@ export class GameWorld implements IWorld {
     );
   }
 
-  verifyCurrentPlatform(answer: string): boolean {
+  verifyCurrentPlatform(answer: TaskAnswer): boolean {
     const platform = this.currentPlatform;
     if (!platform || platform.solved) {
       return false;

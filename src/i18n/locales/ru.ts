@@ -27,6 +27,7 @@ export default {
     paused: 'Пауза',
     taskTitle: 'Реши задачу, чтобы прыгнуть выше',
     answerPlaceholder: 'Ваш ответ',
+    blockSequenceHint: 'Перетащите блоки в нужном порядке',
     submit: 'Ответить',
     winTitle: 'Уровень пройден!',
     loseTitle: 'Уровень не пройден',

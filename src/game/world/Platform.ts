@@ -1,4 +1,5 @@
 import type { IPlatformTask } from '../tasks/IPlatformTask';
+import type { TaskAnswer } from '../tasks/IVerify';
 
 export class Platform {
   solved = false;
@@ -22,7 +23,7 @@ export class Platform {
     this.task = task;
   }
 
-  verify(answer: string): boolean {
+  verify(answer: TaskAnswer): boolean {
     if (this.solved) {
       return true;
     }

@@ -5,6 +5,9 @@ import { i18n } from '../i18n';
 import { createGame } from '../game/fabric';
 import type { Game } from '../game/Game';
 import { getLevelById } from '../levels';
+import type { ISequenceBlock } from '../game/tasks/BlockSequenceTask';
+import type { PlatformTaskKind } from '../game/tasks/IPlatformTask';
+import BlockSequencePanel from './BlockSequencePanel.vue';
 
 const { t } = useI18n();
 
@@ -34,6 +37,9 @@ const canSubmit = ref(false);
 const isLevelComplete = ref(false);
 const isJumping = ref(false);
 const levelOutcome = ref<'none' | 'won' | 'lost'>('none');
+const taskKind = ref<PlatformTaskKind>('text_match');
+const blockOrder = ref<string[]>([]);
+const sequenceBlocks = ref<ISequenceBlock[]>([]);
 
 let resizeObserver: ResizeObserver | null = null;
 let unbindHud: (() => void) | null = null;
@@ -50,7 +56,23 @@ function unbindHudListener() {
   unbindHud = null;
 }
 
+function resetBlockSequenceFromGame() {
+  const task = gameRef.value?.getBlockSequenceTask();
+  if (!task) {
+    blockOrder.value = [];
+    sequenceBlocks.value = [];
+    return;
+  }
+
+  sequenceBlocks.value = [...task.blocks];
+  blockOrder.value = task.createShuffledOrder();
+}
+
 async function focusAnswerInputIfNeeded() {
+  if (taskKind.value !== 'text_match') {
+    return;
+  }
+
   await nextTick();
   if (levelOutcome.value !== 'none' || !canSubmit.value || isJumping.value) {
     return;
@@ -76,9 +98,17 @@ function syncHudFromGame() {
     lastHudPlatformIndex = platformIndex;
     taskFeedback.value = null;
     answerInput.value = '';
+    taskKind.value = game.taskKind;
+    if (taskKind.value === 'block_sequence') {
+      resetBlockSequenceFromGame();
+    } else {
+      blockOrder.value = [];
+      sequenceBlocks.value = [];
+    }
   }
 
   taskPrompt.value = game.taskPrompt;
+  taskKind.value = game.taskKind;
   canSubmit.value = game.canSubmitTask;
   isLevelComplete.value = game.isLevelComplete;
   isJumping.value = game.isJumping;
@@ -148,7 +178,10 @@ function submitAnswer() {
   const game = gameRef.value;
   if (!game || !canSubmit.value || isJumping.value) return;
 
-  const ok = game.submitAnswer(answerInput.value);
+  const answer =
+    taskKind.value === 'block_sequence' ? blockOrder.value : answerInput.value;
+
+  const ok = game.submitAnswer(answer);
   if (ok) {
     taskFeedback.value = 'ok';
     answerInput.value = '';
@@ -161,6 +194,8 @@ function retryLevel() {
   if (!game) return;
 
   answerInput.value = '';
+  blockOrder.value = [];
+  sequenceBlocks.value = [];
   taskFeedback.value = null;
   lastHudPlatformIndex = -1;
   game.retryLevel();
@@ -216,8 +251,17 @@ onBeforeUnmount(() => {
       <aside v-if="levelOutcome === 'none'" class="task-panel">
         <p class="task-title">{{ t('game.taskTitle') }}</p>
         <p class="task-prompt">{{ taskPrompt }}</p>
+        <BlockSequencePanel
+          v-if="taskKind === 'block_sequence'"
+          :blocks="sequenceBlocks"
+          :order="blockOrder"
+          :disabled="!canSubmit || isJumping"
+          @update:order="blockOrder = $event"
+        />
+
         <form class="task-form" @submit.prevent="submitAnswer">
           <input
+            v-if="taskKind === 'text_match'"
             ref="answerInputRef"
             v-model="answerInput"
             type="text"
@@ -230,7 +274,8 @@ onBeforeUnmount(() => {
           <button
             type="submit"
             class="task-submit"
-            :disabled="!canSubmit || isJumping || !answerInput.trim()"
+            :class="{ 'task-submit--full': taskKind === 'block_sequence' }"
+            :disabled="!canSubmit || isJumping || (taskKind === 'text_match' && !answerInput.trim())"
           >
             {{ t('game.submit') }}
           </button>
@@ -333,7 +378,9 @@ onBeforeUnmount(() => {
   position: absolute;
   right: 1rem;
   bottom: 1rem;
-  width: min(320px, calc(100% - 2rem));
+  width: min(360px, calc(100% - 2rem));
+  max-height: calc(100% - 2rem);
+  overflow-y: auto;
   padding: 1rem 1.1rem;
   border-radius: 0.5rem;
   border: 1px solid var(--border);
@@ -362,6 +409,11 @@ onBeforeUnmount(() => {
 .task-form {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.task-submit--full {
+  width: 100%;
 }
 
 .task-input {
