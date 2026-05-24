@@ -144,39 +144,6 @@ function initGame() {
   }, 100);
 }
 
-function togglePauseResume() {
-  const game = gameRef.value;
-  if (!game) return;
-
-  if (game.gameState === 'running') {
-    game.pause();
-  } else if (game.gameState === 'paused') {
-    game.resume();
-  }
-}
-
-function toggleStartStop() {
-  const game = gameRef.value;
-  if (!game) return;
-
-  if (game.gameState === 'wait_for_start') {
-    game.start();
-    syncHudFromGame();
-  } else {
-    game.stop();
-    answerInput.value = '';
-    taskFeedback.value = null;
-    displayScore.value = 0;
-  }
-}
-
-function restartGame() {
-  gameRef.value?.restart();
-  answerInput.value = '';
-  taskFeedback.value = null;
-  syncHudFromGame();
-}
-
 function submitAnswer() {
   const game = gameRef.value;
   if (!game || !canSubmit.value || isJumping.value) return;
@@ -208,16 +175,6 @@ function onAnswerKeydown(event: KeyboardEvent) {
   }
 }
 
-function onKeyDown(event: KeyboardEvent) {
-  if (event.code === 'Space' && event.target === document.body) {
-    event.preventDefault();
-    togglePauseResume();
-  } else if (event.code === 'Enter' && event.target === document.body) {
-    event.preventDefault();
-    toggleStartStop();
-  }
-}
-
 function teardownGame() {
   unbindHudListener();
   gameRef.value?.stop();
@@ -226,8 +183,6 @@ function teardownGame() {
 }
 
 onMounted(() => {
-  window.addEventListener('keydown', onKeyDown);
-
   nextTick(() => {
     resizeObserver = new ResizeObserver(() => {
       applyCanvasSize();
@@ -242,7 +197,6 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onKeyDown);
   resizeObserver?.disconnect();
   resizeObserver = null;
   teardownGame();

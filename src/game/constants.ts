@@ -26,9 +26,6 @@ export const POINTS_PER_PLATFORM = 1;
 /** Плавность камеры (0–1, чем больше — быстрее догоняет) */
 export const CAMERA_FOLLOW_LERP = 0.12;
 
-/** Отступ камеры от верха экрана до игрока, px */
-export const CAMERA_PLAYER_OFFSET_Y = 220;
-
 /** Допуск посадки на платформу, px */
 export const LANDING_TOLERANCE = 6;
 

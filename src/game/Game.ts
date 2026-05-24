@@ -1,4 +1,3 @@
-import { CAMERA_PLAYER_OFFSET_Y } from './constants';
 import type { IEngine } from './engine/IEngine';
 import type { IFrameView } from './FrameView';
 import type { IGameSession, LevelOutcome } from './GameSession';
