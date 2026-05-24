@@ -1,5 +1,5 @@
-import { ImmutableFrameView } from "../FrameView";
-import { ImmutableGameSession } from "../GameSession";
+import type { ImmutableFrameView } from "../FrameView";
+import type { ImmutableGameSession } from "../GameSession";
 import { GameWorld } from "../world/GameWorld";
 import type { Translator } from "../../i18n";
 

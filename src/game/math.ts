@@ -15,6 +15,10 @@ export function circleSquare(radius: number) {
   return Math.PI * radius * radius;
 }
 
+export function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
 export const PI_MUL_2 = 2 * Math.PI;
 export const PI_DIV_2 = Math.PI / 2;
 export const PI_DIV_4 = Math.PI / 4;

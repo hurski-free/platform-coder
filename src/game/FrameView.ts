@@ -1,4 +1,4 @@
-import { vec2 } from "./math";
+import type { vec2 } from "./math";
 
 export interface IFrameView {
   width: number;

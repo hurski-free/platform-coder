@@ -1,8 +1,10 @@
-import { IEngine } from "./engine/IEngine";
-import { IFrameView } from "./FrameView";
-import { IGameSession } from "./GameSession";
-import { IRender } from "./render/IRender";
-import { GameWorld } from "./world/GameWorld";
+import { CAMERA_PLAYER_OFFSET_Y } from './constants';
+import type { IEngine } from './engine/IEngine';
+import type { IFrameView } from './FrameView';
+import type { IGameSession, LevelOutcome } from './GameSession';
+import type { ILevel } from './level/ILevel';
+import type { IRender } from './render/IRender';
+import { GameWorld } from './world/GameWorld';
 
 /**
  * non-optimized game class
@@ -18,31 +20,166 @@ export class Game {
   protected animationFrameId: number = 0;
   protected _prevTimestamp: DOMHighResTimeStamp = 0;
 
+  private readonly hudListeners = new Set<() => void>();
+  private lastHudPlatformIndex = -1;
+  private lastHudMotion = '';
+  private lastHudScore = -1;
+  private lastHudLevelComplete = false;
+  private lastHudLevelOutcome: LevelOutcome = 'none';
+
+  private readonly level: ILevel;
+
   constructor(
     world: GameWorld,
     engine: IEngine,
     renderer: IRender,
     frameView: IFrameView,
     gameSession: IGameSession,
+    level: ILevel,
   ) {
     this.world = world;
     this.engine = engine;
     this.renderer = renderer;
     this.frameView = frameView;
     this.gameSession = gameSession;
+    this.level = level;
   }
 
   get gameState() {
     return this.gameSession.gameState;
   }
 
+  get score() {
+    return this.gameSession.score;
+  }
+
+  get taskPrompt(): string {
+    return this.world.currentPlatform?.task.prompt ?? '';
+  }
+
+  get levelOutcome(): LevelOutcome {
+    return this.gameSession.levelOutcome;
+  }
+
+  get isLevelEnded(): boolean {
+    return this.gameSession.levelOutcome !== 'none';
+  }
+
+  get canSubmitTask(): boolean {
+    return (
+      this.gameSession.gameState === 'running' &&
+      this.gameSession.levelOutcome === 'none' &&
+      this.world.canSubmitTask()
+    );
+  }
+
+  get isJumping(): boolean {
+    return this.world.player.motion === 'jumping';
+  }
+
+  get isLevelComplete(): boolean {
+    return this.gameSession.levelOutcome === 'won';
+  }
+
+  get currentPlatformIndex(): number {
+    return this.world.currentPlatformIndex;
+  }
+
+  /** Подписка на смену состояния задачи / платформы (для Vue UI) */
+  onHudChange(listener: () => void): () => void {
+    this.hudListeners.add(listener);
+    return () => {
+      this.hudListeners.delete(listener);
+    };
+  }
+
+  private emitHudChange(): void {
+    for (const listener of this.hudListeners) {
+      listener();
+    }
+  }
+
+  private syncHudIfChanged(): void {
+    const platformIndex = this.world.currentPlatformIndex;
+    const motion = this.world.player.motion;
+    const score = this.gameSession.score;
+    const levelComplete = this.isLevelComplete;
+    const levelOutcome = this.gameSession.levelOutcome;
+
+    if (
+      platformIndex === this.lastHudPlatformIndex &&
+      motion === this.lastHudMotion &&
+      score === this.lastHudScore &&
+      levelComplete === this.lastHudLevelComplete &&
+      levelOutcome === this.lastHudLevelOutcome
+    ) {
+      return;
+    }
+
+    this.lastHudPlatformIndex = platformIndex;
+    this.lastHudMotion = motion;
+    this.lastHudScore = score;
+    this.lastHudLevelComplete = levelComplete;
+    this.lastHudLevelOutcome = levelOutcome;
+    this.emitHudChange();
+  }
+
+  private resetHudTracking(): void {
+    this.lastHudPlatformIndex = -1;
+    this.lastHudMotion = '';
+    this.lastHudScore = -1;
+    this.lastHudLevelComplete = false;
+    this.lastHudLevelOutcome = 'none';
+    this.syncHudIfChanged();
+  }
+
+  private endLevel(outcome: 'won' | 'lost'): void {
+    if (this.gameSession.levelOutcome !== 'none') {
+      return;
+    }
+
+    this.gameSession.levelOutcome = outcome;
+
+    if (this.gameSession.gameState === 'running') {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = 0;
+      this.gameSession.gameState = 'finished';
+    }
+
+    this.renderer.render(this.world, this.frameView, this.gameSession);
+    this.syncHudIfChanged();
+  }
+
+  /** Проверка ответа; при успехе — очки и прыжок; при ошибке — проигрыш */
+  submitAnswer(answer: string): boolean {
+    if (!this.canSubmitTask) {
+      return false;
+    }
+
+    if (!this.world.verifyCurrentPlatform(answer)) {
+      this.endLevel('lost');
+      return false;
+    }
+
+    this.world.markCurrentPlatformSolved();
+    this.engine.onPlatformSolved(this.world, this.gameSession);
+
+    if (this.world.isOnLastPlatform) {
+      this.endLevel('won');
+    }
+
+    this.syncHudIfChanged();
+    return true;
+  }
+
   start() {
     if (this.gameSession.gameState === 'wait_for_start') {
       this.gameSession.gameState = 'running';
+      this.gameSession.score = 0;
+      this.gameSession.levelOutcome = 'none';
 
-      this.frameView.camera[0] = -this.frameView.halfWidth;
-      this.frameView.camera[1] = -this.frameView.halfHeight;
-
+      this.syncCameraToPlayer();
+      this.resetHudTracking();
       this._prevTimestamp = performance.now();
       this.animationFrameId = requestAnimationFrame((now) => this.tick(now));
     }
@@ -54,11 +191,11 @@ export class Game {
       this._prevTimestamp = now;
 
       if (deltaTime > 200) {
-        // ignore cycle
         this.animationFrameId = requestAnimationFrame((now) => this.tick(now));
       } else {
-        this.engine.process(this.world, this.frameView, this.gameSession);
+        this.engine.process(this.world, this.frameView, this.gameSession, deltaTime);
         this.renderer.render(this.world, this.frameView, this.gameSession);
+        this.syncHudIfChanged();
         this.animationFrameId = requestAnimationFrame((now) => this.tick(now));
       }
     }
@@ -86,7 +223,10 @@ export class Game {
       this.gameSession.gameState = 'wait_for_start';
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = 0;
+      this.gameSession.score = 0;
+      this.gameSession.levelOutcome = 'none';
       this.world.clear();
+      this.resetHudTracking();
       this.renderer.render(this.world, this.frameView, this.gameSession);
     }
   }
@@ -96,24 +236,41 @@ export class Game {
     this.start();
   }
 
+  /** Новая попытка: пересобрать уровень и начать заново */
+  retryLevel(): void {
+    if (this.gameSession.gameState === 'running') {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = 0;
+    }
+
+    this.gameSession.gameState = 'wait_for_start';
+    this.gameSession.score = 0;
+    this.gameSession.levelOutcome = 'none';
+
+    this.world.buildLevel(this.level);
+    this.world.layoutForCanvasWidth(this.frameView.width);
+    this.resetHudTracking();
+    this.syncCameraToPlayer();
+    this.renderer.render(this.world, this.frameView, this.gameSession);
+    this.start();
+  }
+
   resizeCanvas(width: number, height: number, cameraSet = false) {
     this.frameView.width = width;
     this.frameView.height = height;
     this.frameView.halfWidth = width / 2;
     this.frameView.halfHeight = height / 2;
 
+    this.world.layoutForCanvasWidth(width);
+
     if (cameraSet) {
-      this.frameView.camera[0] = -this.frameView.halfWidth;
-      this.frameView.camera[1] = -this.frameView.halfHeight;
+      this.syncCameraToPlayer();
     }
   }
 
-  cameraMove(deltaX: number, deltaY: number) {
-    this.frameView.camera[0] -= deltaX;
-    this.frameView.camera[1] -= deltaY;
-
-    if (this.gameSession.gameState === 'paused') {
-      this.renderer.render(this.world, this.frameView, this.gameSession);
-    }
+  private syncCameraToPlayer() {
+    const player = this.world.player;
+    this.frameView.camera[0] = -this.frameView.halfWidth + player.x + player.size / 2;
+    this.frameView.camera[1] = -player.y + this.frameView.halfHeight;
   }
 }

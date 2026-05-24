@@ -1,3 +1,39 @@
 export default {
-
+  main: {
+    title: 'Platform Coder',
+    lead: 'Прыгай вверх по платформам, решая задачи.',
+    language: 'Язык',
+  },
+  levels: {
+    title: 'Выбор уровня',
+    play: 'Играть',
+    platformCount: 'Платформ: {count}',
+    empty: 'Уровни не найдены. Добавьте файл *.level.ts в папку levels.',
+    math: {
+      title: 'Математика',
+      description: 'Сложение, вычитание, умножение и деление — задачи генерируются случайно.',
+    },
+    solarSystem: {
+      title: 'Солнечная система',
+      description: 'Вопросы о планетах и космосе.',
+    },
+  },
+  game: {
+    back: 'Назад',
+    pauseResume: 'Пауза / Продолжить',
+    stopStart: 'Стоп / Старт',
+    restart: 'Заново',
+    score: 'Очки: {score}',
+    paused: 'Пауза',
+    taskTitle: 'Реши задачу, чтобы прыгнуть выше',
+    answerPlaceholder: 'Ваш ответ',
+    submit: 'Ответить',
+    winTitle: 'Уровень пройден!',
+    loseTitle: 'Уровень не пройден',
+    winMessage: 'Все задачи решены верно.',
+    loseMessage: 'Неверный ответ — попробуйте уровень ещё раз.',
+    finalScore: 'Очки: {score}',
+    backToLevels: 'К выбору уровней',
+    retry: 'Пройти снова',
+  },
 };

@@ -1,3 +1,39 @@
 export default {
-
+  main: {
+    title: 'Platform Coder',
+    lead: 'Jump up the platforms by solving tasks.',
+    language: 'Language',
+  },
+  levels: {
+    title: 'Choose a level',
+    play: 'Play',
+    platformCount: 'Platforms: {count}',
+    empty: 'No levels found. Add a *.level.ts file to the levels folder.',
+    math: {
+      title: 'Math',
+      description: 'Addition, subtraction, multiplication, and division with random problems.',
+    },
+    solarSystem: {
+      title: 'Solar system',
+      description: 'Questions about planets and space.',
+    },
+  },
+  game: {
+    back: 'Back',
+    pauseResume: 'Pause / Resume',
+    stopStart: 'Stop / Start',
+    restart: 'Restart',
+    score: 'Score: {score}',
+    paused: 'Paused',
+    taskTitle: 'Solve to jump up',
+    answerPlaceholder: 'Your answer',
+    submit: 'Submit',
+    winTitle: 'Level complete!',
+    loseTitle: 'Level failed',
+    winMessage: 'You solved every task correctly.',
+    loseMessage: 'Wrong answer — try this level again.',
+    finalScore: 'Score: {score}',
+    backToLevels: 'Back to levels',
+    retry: 'Try again',
+  },
 };

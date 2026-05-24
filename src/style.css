@@ -1,13 +1,16 @@
 :root {
-  --text: #e8eaef;
-  --text-h: #f4f6fb;
-  --muted: #8b93a6;
-  --bg: #0c0f14;
-  --surface: #141922;
-  --input-bg: #0f1218;
-  --border: #2a3140;
-  --accent: #5ee0d0;
-  --accent-dim: #3aa89a;
+  --text: #1e3a52;
+  --text-h: #0f2840;
+  --muted: #5a7a94;
+  --bg: #cfe9f8;
+  --surface: #ffffff;
+  --input-bg: #f0f9ff;
+  --border: #b8d4e8;
+  --accent: #2a9fd6;
+  --accent-dim: #1d7eb0;
+  --sky-top: #7ec8f0;
+  --sky-bottom: #d4effc;
+  --danger: #c45c5c;
 
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.45;
@@ -29,7 +32,7 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: radial-gradient(ellipse 120% 80% at 50% -20%, #1a2438 0%, var(--bg) 55%);
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 45%, var(--bg) 100%);
 }
 
 #app {

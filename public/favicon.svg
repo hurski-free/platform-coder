@@ -1,53 +1,51 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-  <title>Black hole</title>
+  <title>Platform learning</title>
   <defs>
-    <radialGradient id="halo" cx="50%" cy="46%" r="58%">
-      <stop offset="0%" stop-color="#000008"/>
-      <stop offset="32%" stop-color="#000006"/>
-      <stop offset="40%" stop-color="#2a0a14"/>
-      <stop offset="46%" stop-color="#ff6b2e"/>
-      <stop offset="52%" stop-color="#ffd27a"/>
-      <stop offset="58%" stop-color="#e85a28"/>
-      <stop offset="68%" stop-color="#3d1818" stop-opacity="0.55"/>
-      <stop offset="100%" stop-color="#06060e" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="diskTop" x1="0.5" y1="0" x2="0.5" y2="1">
-      <stop offset="0%" stop-color="#fff2d4" stop-opacity="0.95"/>
-      <stop offset="40%" stop-color="#ff9a4a"/>
-      <stop offset="100%" stop-color="#8b2010" stop-opacity="0.15"/>
+    <linearGradient id="bg" x1="8" y1="4" x2="56" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#141922"/>
+      <stop offset="100%" stop-color="#0c0f14"/>
     </linearGradient>
-    <linearGradient id="diskBottom" x1="0.5" y1="0" x2="0.5" y2="1">
-      <stop offset="0%" stop-color="#ff7a32" stop-opacity="0.55"/>
-      <stop offset="100%" stop-color="#1a080c" stop-opacity="0.35"/>
+    <linearGradient id="page" x1="32" y1="18" x2="32" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#f4f6fb"/>
+      <stop offset="100%" stop-color="#d0d6e0"/>
     </linearGradient>
-    <radialGradient id="shadow" cx="50%" cy="42%" r="50%">
-      <stop offset="0%" stop-color="#000"/>
-      <stop offset="100%" stop-color="#000" stop-opacity="0.97"/>
+    <linearGradient id="cover" x1="14" y1="38" x2="50" y2="38" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3aa89a"/>
+      <stop offset="100%" stop-color="#5ee0d0"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="32%" r="42%">
+      <stop offset="0%" stop-color="#5ee0d0" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#5ee0d0" stop-opacity="0"/>
     </radialGradient>
   </defs>
 
-  <rect width="64" height="64" rx="14" fill="#04040a"/>
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <circle cx="32" cy="26" r="21" fill="url(#glow)"/>
 
-  <circle cx="10" cy="12" r="0.55" fill="#d8e8ff" opacity="0.45"/>
-  <circle cx="54" cy="14" r="0.45" fill="#fff" opacity="0.35"/>
-  <circle cx="50" cy="50" r="0.5" fill="#a8c4ff" opacity="0.4"/>
-  <circle cx="18" cy="52" r="0.4" fill="#fff" opacity="0.25"/>
+  <!-- ascending platforms -->
+  <rect x="7" y="51" width="17" height="4.5" rx="2" fill="#3d4f6a"/>
+  <rect x="21" y="45" width="17" height="4.5" rx="2" fill="#4a6a7a"/>
+  <rect x="37" y="39" width="20" height="4.5" rx="2" fill="#5ee0d0"/>
 
-  <!-- Accretion disk (tilted torus: far + near arcs) -->
-  <g transform="translate(32 31)">
-    <ellipse rx="24" ry="7.5" fill="url(#diskBottom)" opacity="0.85" transform="rotate(-12)"/>
-    <ellipse rx="24" ry="7.5" fill="none" stroke="#ffcc88" stroke-width="0.35" opacity="0.25" transform="rotate(-12)"/>
+  <!-- player cube -->
+  <rect x="26.5" y="36" width="10" height="10" rx="2" fill="#f4c95d"/>
+  <rect x="28" y="37.5" width="7" height="7" rx="1.2" stroke="#c9922e" stroke-width="0.8" fill="none" opacity="0.45"/>
+
+  <!-- open book -->
+  <path
+    d="M32 15C23 15 18 17.5 18 20.5v20.5c0 2.2 4.5 4.2 14 6 9.5-1.8 14-3.8 14-6V20.5C46 17.5 41 15 32 15Z"
+    fill="url(#cover)"
+  />
+  <path d="M32 15v32" stroke="#2d8f84" stroke-width="1.25" stroke-linecap="round"/>
+  <path d="M18 21c0 2.2 5.2 4.5 14 6V21c-5.8-1.2-10.8-1.2-14 0Z" fill="url(#page)"/>
+  <path d="M46 21c0 2.2-5.2 4.5-14 6V21c5.8-1.2 10.8-1.2 14 0Z" fill="url(#page)"/>
+  <path d="M21 27h6M21 31h4" stroke="#8b93a6" stroke-width="1.15" stroke-linecap="round" opacity="0.5"/>
+  <path d="M37 27h6M39 31h4" stroke="#8b93a6" stroke-width="1.15" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- insight bulb -->
+  <g transform="translate(47 15)">
+    <path d="M0-5.5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Z" fill="#f4c95d"/>
+    <path d="M-2.2 4.2h4.4l-.8 2.2h-2.8l-.8-2.2Z" fill="#c9922e"/>
+    <path d="M0-9v1.8M-4-7l1.2 1.2M4-7l-1.2 1.2" stroke="#ffe8a8" stroke-width="1.1" stroke-linecap="round" opacity="0.85"/>
   </g>
-
-  <circle cx="32" cy="31" r="30" fill="url(#halo)"/>
-
-  <g transform="translate(32 31)">
-    <ellipse rx="24" ry="7.5" fill="url(#diskTop)" transform="rotate(-12)"/>
-  </g>
-
-  <!-- Event horizon + faint photon ring -->
-  <circle cx="32" cy="31" r="11" fill="url(#shadow)"/>
-  <ellipse cx="32" cy="31" rx="12.2" ry="11.4" fill="none" stroke="#ffe8c8" stroke-width="0.45" opacity="0.28"/>
-
-  <circle cx="32" cy="31" r="9.5" fill="#000"/>
 </svg>
