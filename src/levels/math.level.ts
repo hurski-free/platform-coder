@@ -1,5 +1,5 @@
 import type { ILevel, ILevelPlatform } from "../game/level/ILevel";
-import { createIntUniqueArray, rndInt, rng } from "../utils/generators";
+import { createIntUniqueArray, rndInt } from "../utils/generators";
 import type { ILevelDefinition } from "./level-definition";
 
 function createSumPlatform(digits: number): ILevelPlatform {
