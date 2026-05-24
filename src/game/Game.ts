@@ -3,6 +3,7 @@ import type { IFrameView } from './FrameView';
 import type { IGameSession, LevelOutcome } from './GameSession';
 import type { ILevel } from './level/ILevel';
 import type { IRender } from './render/IRender';
+import { BlockBuildTask, isBlockBuildTask } from './tasks/BlockBuildTask';
 import {
   BlockSequenceTask,
   isBlockSequenceTask,
@@ -69,6 +70,14 @@ export class Game {
   getBlockSequenceTask(): BlockSequenceTask | null {
     const task = this.world.currentPlatform?.task;
     if (!task || !isBlockSequenceTask(task)) {
+      return null;
+    }
+    return task;
+  }
+
+  getBlockBuildTask(): BlockBuildTask | null {
+    const task = this.world.currentPlatform?.task;
+    if (!task || !isBlockBuildTask(task)) {
       return null;
     }
     return task;

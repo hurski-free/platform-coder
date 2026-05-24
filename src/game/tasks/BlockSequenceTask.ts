@@ -1,13 +1,12 @@
 import { arraysEqual, shuffleCopy } from '../math';
 import type { IPlatformTask } from './IPlatformTask';
 import type { TaskAnswer } from './IVerify';
+import type { ISequenceBlock } from './sequence-blocks';
+import { verifySequenceOrder } from './sequence-answer';
 
-export interface ISequenceBlock {
-  id: string;
-  text: string;
-}
+export type { ISequenceBlock } from './sequence-blocks';
 
-/** Расстановка блоков в заданном порядке (по id) */
+/** Расстановка всех блоков в заданном порядке (без лишних) */
 export class BlockSequenceTask implements IPlatformTask {
   readonly kind = 'block_sequence' as const;
   readonly prompt: string;
@@ -26,11 +25,7 @@ export class BlockSequenceTask implements IPlatformTask {
   }
 
   verify(answer: TaskAnswer): boolean {
-    const order = this.normalizeAnswer(answer);
-    if (!order) {
-      return false;
-    }
-    return arraysEqual(order, this.expected);
+    return verifySequenceOrder(answer, this.expected);
   }
 
   /** Начальный порядок блоков (перемешанный) для UI */
@@ -52,33 +47,6 @@ export class BlockSequenceTask implements IPlatformTask {
     }
 
     return shuffled;
-  }
-
-  private normalizeAnswer(answer: TaskAnswer): string[] | null {
-    if (Array.isArray(answer)) {
-      if (!answer.every((id) => typeof id === 'string')) {
-        return null;
-      }
-      return [...answer];
-    }
-
-    if (typeof answer !== 'string' || answer.trim().length === 0) {
-      return null;
-    }
-
-    try {
-      const parsed: unknown = JSON.parse(answer);
-      if (
-        Array.isArray(parsed) &&
-        parsed.every((item) => typeof item === 'string')
-      ) {
-        return parsed;
-      }
-    } catch {
-      return null;
-    }
-
-    return null;
   }
 }
 

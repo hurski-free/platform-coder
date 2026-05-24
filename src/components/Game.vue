@@ -1,12 +1,19 @@
 <script setup lang="ts">
-import { ref, shallowRef, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { ref, shallowRef, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { i18n } from '../i18n';
 import { createGame } from '../game/fabric';
 import type { Game } from '../game/Game';
 import { getLevelById } from '../levels';
-import type { ISequenceBlock } from '../game/tasks/BlockSequenceTask';
+import type { ISequenceBlock } from '../game/tasks/sequence-blocks';
 import type { PlatformTaskKind } from '../game/tasks/IPlatformTask';
+import {
+  clearBuildOrder,
+  clearBuildOrdersForLevel,
+  loadBuildOrder,
+  saveBuildOrder,
+} from '../utils/block-build-storage';
+import BlockBuildPanel from './BlockBuildPanel.vue';
 import BlockSequencePanel from './BlockSequencePanel.vue';
 
 const { t } = useI18n();
@@ -39,6 +46,9 @@ const isJumping = ref(false);
 const levelOutcome = ref<'none' | 'won' | 'lost'>('none');
 const taskKind = ref<PlatformTaskKind>('text_match');
 const blockOrder = ref<string[]>([]);
+const buildOrder = ref<string[]>([]);
+const poolIds = ref<string[]>([]);
+const saveBuildSequence = ref(false);
 const sequenceBlocks = ref<ISequenceBlock[]>([]);
 
 let resizeObserver: ResizeObserver | null = null;
@@ -64,8 +74,58 @@ function resetBlockSequenceFromGame() {
     return;
   }
 
+  buildOrder.value = [];
+  poolIds.value = [];
   sequenceBlocks.value = [...task.blocks];
   blockOrder.value = task.createShuffledOrder();
+}
+
+function sanitizeBuildOrder(order: string[], validIds: Set<string>): string[] {
+  return order.filter((id) => validIds.has(id));
+}
+
+function persistBuildOrderForPlatform(platformIndex: number) {
+  if (!saveBuildSequence.value || platformIndex < 0) {
+    return;
+  }
+  saveBuildOrder(props.levelId, platformIndex, buildOrder.value);
+}
+
+function saveCurrentBuildOrder() {
+  persistBuildOrderForPlatform(lastHudPlatformIndex);
+}
+
+function resetBlockBuildFromGame(platformIndex: number) {
+  const task = gameRef.value?.getBlockBuildTask();
+  if (!task) {
+    buildOrder.value = [];
+    poolIds.value = [];
+    saveBuildSequence.value = false;
+    sequenceBlocks.value = [];
+    return;
+  }
+
+  blockOrder.value = [];
+  sequenceBlocks.value = [...task.blocks];
+  poolIds.value = task.createShuffledPool();
+  saveBuildSequence.value = task.saveSequence;
+
+  const validIds = new Set(task.blocks.map((block) => block.id));
+
+  if (task.saveSequence) {
+    const saved = loadBuildOrder(props.levelId, platformIndex);
+    buildOrder.value = saved ? sanitizeBuildOrder(saved, validIds) : [];
+  } else {
+    buildOrder.value = [];
+  }
+}
+
+function resetSequenceTaskUi() {
+  blockOrder.value = [];
+  buildOrder.value = [];
+  poolIds.value = [];
+  saveBuildSequence.value = false;
+  sequenceBlocks.value = [];
 }
 
 async function focusAnswerInputIfNeeded() {
@@ -95,15 +155,21 @@ function syncHudFromGame() {
   const platformIndex = game.currentPlatformIndex;
   const platformChanged = platformIndex !== lastHudPlatformIndex;
   if (platformChanged) {
+    if (taskKind.value === 'block_build') {
+      saveCurrentBuildOrder();
+    }
+
     lastHudPlatformIndex = platformIndex;
     taskFeedback.value = null;
     answerInput.value = '';
     taskKind.value = game.taskKind;
+
     if (taskKind.value === 'block_sequence') {
       resetBlockSequenceFromGame();
+    } else if (taskKind.value === 'block_build') {
+      resetBlockBuildFromGame(platformIndex);
     } else {
-      blockOrder.value = [];
-      sequenceBlocks.value = [];
+      resetSequenceTaskUi();
     }
   }
 
@@ -178,13 +244,20 @@ function submitAnswer() {
   const game = gameRef.value;
   if (!game || !canSubmit.value || isJumping.value) return;
 
-  const answer =
-    taskKind.value === 'block_sequence' ? blockOrder.value : answerInput.value;
+  let answer: string | string[] = answerInput.value;
+  if (taskKind.value === 'block_sequence') {
+    answer = blockOrder.value;
+  } else if (taskKind.value === 'block_build') {
+    answer = buildOrder.value;
+  }
 
   const ok = game.submitAnswer(answer);
   if (ok) {
     taskFeedback.value = 'ok';
     answerInput.value = '';
+    if (taskKind.value === 'block_build' && saveBuildSequence.value) {
+      clearBuildOrder(props.levelId, game.currentPlatformIndex);
+    }
   }
   syncHudFromGame();
 }
@@ -194,8 +267,9 @@ function retryLevel() {
   if (!game) return;
 
   answerInput.value = '';
-  blockOrder.value = [];
-  sequenceBlocks.value = [];
+  saveCurrentBuildOrder();
+  clearBuildOrdersForLevel(props.levelId);
+  resetSequenceTaskUi();
   taskFeedback.value = null;
   lastHudPlatformIndex = -1;
   game.retryLevel();
@@ -211,11 +285,22 @@ function onAnswerKeydown(event: KeyboardEvent) {
 }
 
 function teardownGame() {
+  saveCurrentBuildOrder();
   unbindHudListener();
   gameRef.value?.stop();
   gameRef.value = null;
   lastHudPlatformIndex = -1;
 }
+
+watch(
+  buildOrder,
+  () => {
+    if (taskKind.value === 'block_build' && saveBuildSequence.value) {
+      persistBuildOrderForPlatform(lastHudPlatformIndex);
+    }
+  },
+  { deep: true },
+);
 
 onMounted(() => {
   nextTick(() => {
@@ -259,6 +344,16 @@ onBeforeUnmount(() => {
           @update:order="blockOrder = $event"
         />
 
+        <BlockBuildPanel
+          v-if="taskKind === 'block_build'"
+          :blocks="sequenceBlocks"
+          :pool-ids="poolIds"
+          :build-order="buildOrder"
+          :save-sequence="saveBuildSequence"
+          :disabled="!canSubmit || isJumping"
+          @update:build-order="buildOrder = $event"
+        />
+
         <form class="task-form" @submit.prevent="submitAnswer">
           <input
             v-if="taskKind === 'text_match'"
@@ -274,8 +369,15 @@ onBeforeUnmount(() => {
           <button
             type="submit"
             class="task-submit"
-            :class="{ 'task-submit--full': taskKind === 'block_sequence' }"
-            :disabled="!canSubmit || isJumping || (taskKind === 'text_match' && !answerInput.trim())"
+            :class="{
+              'task-submit--full':
+                taskKind === 'block_sequence' || taskKind === 'block_build',
+            }"
+            :disabled="
+              !canSubmit ||
+              isJumping ||
+              (taskKind === 'text_match' && !answerInput.trim())
+            "
           >
             {{ t('game.submit') }}
           </button>

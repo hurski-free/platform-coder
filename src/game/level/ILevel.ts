@@ -1,4 +1,4 @@
-import type { ISequenceBlock } from '../tasks/BlockSequenceTask';
+import type { ISequenceBlock } from '../tasks/sequence-blocks';
 import type { PlatformTaskKind } from '../tasks/IPlatformTask';
 import type { TextMatchExpected } from '../tasks/TextMatchTask';
 
@@ -15,7 +15,19 @@ export interface ILevelPlatformBlockSequence {
   expected: string[];
 }
 
-export type ILevelPlatform = ILevelPlatformTextMatch | ILevelPlatformBlockSequence;
+export interface ILevelPlatformBlockBuild {
+  kind: 'block_build';
+  prompt: string;
+  blocks: ISequenceBlock[];
+  expected: string[];
+  /** Сохранять собранную последовательность между визитами на платформу (sessionStorage) */
+  saveSequence?: boolean;
+}
+
+export type ILevelPlatform =
+  | ILevelPlatformTextMatch
+  | ILevelPlatformBlockSequence
+  | ILevelPlatformBlockBuild;
 
 export interface ILevel {
   platforms: ILevelPlatform[];

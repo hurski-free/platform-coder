@@ -23,6 +23,10 @@ export function arraysEqual<T>(a: readonly T[], b: readonly T[]): boolean {
   return a.length === b.length && a.every((value, index) => value === b[index]);
 }
 
+export function arraysEqualIgnoreOrder<T>(a: readonly T[], b: readonly T[]): boolean {
+  return a.length === b.length && a.every((value) => b.includes(value));
+}
+
 export function shuffleCopy<T>(items: readonly T[]): T[] {
   const copy = [...items];
   for (let i = copy.length - 1; i > 0; i--) {
