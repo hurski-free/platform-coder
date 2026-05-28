@@ -103,7 +103,7 @@ function createSolarSystemLevel(): ILevel {
           { id: 'venus', text: 'Венера' },
           { id: 'earth', text: 'Земля' },
         ],
-        expected: ['saturn', 'jupiter', 'venus', 'earth'],
+        expected: ['saturn', 'jupiter', 'earth', 'venus'],
       },
       {
         kind: 'block_build',
